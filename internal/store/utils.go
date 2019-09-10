@@ -70,6 +70,22 @@ func kubeLabelsToPrometheusLabels(labels map[string]string) ([]string, []string)
 	return labelKeys, labelValues
 }
 
+func kubeAnnotationsToPrometheusLabels(annotations map[string]string) ([]string, []string) {
+	// Remove Last applied configuration annotation since it can potentially store sensitive data.
+	// Refer to https://github.com/kubernetes/kube-state-metrics/issues/854 for more info.
+	// TODO: We need to rethink how we expose annotations since it's pretty unbounded.
+	delete(annotations, v1.LastAppliedConfigAnnotation)
+	annotationKeys := make([]string, len(annotations))
+	annotationValues := make([]string, len(annotations))
+	i := 0
+	for k, v := range annotations {
+		annotationKeys[i] = "annotation_" + sanitizeLabelName(k)
+		annotationValues[i] = v
+		i++
+	}
+	return annotationKeys, annotationValues
+}
+
 func sanitizeLabelName(s string) string {
 	return invalidLabelCharRE.ReplaceAllString(s, "_")
 }
