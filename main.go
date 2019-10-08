@@ -56,7 +56,7 @@ func (pl promLogger) Println(v ...interface{}) {
 }
 
 func main() {
-	opts := options.NewOptions()
+	opts := options.Instance()
 	opts.AddFlags()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -128,6 +128,14 @@ func main() {
 			"kube_node_status_allocatable_cpu_cores",
 			"kube_node_status_allocatable_memory_bytes",
 			"kube_node_status_allocatable_pods",
+		})
+	}
+
+	if opts.EnableAnnotationMetrics {
+		klog.Infof("annotation-metrics enabled, annotation-white-list: %v", opts.AnnotationWhitelist)
+	} else {
+		whiteBlackList.Exclude([]string{
+			".*_annotations$",
 		})
 	}
 

@@ -23,10 +23,13 @@ import (
 	"strings"
 
 	"k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/klog"
 
 	v1 "k8s.io/api/core/v1"
 
 	"k8s.io/kube-state-metrics/pkg/metric"
+	"k8s.io/kube-state-metrics/pkg/options"
+	"k8s.io/kube-state-metrics/pkg/whiteblacklist"
 )
 
 var (
@@ -73,19 +76,32 @@ func kubeLabelsToPrometheusLabels(labels map[string]string) ([]string, []string)
 }
 
 func kubeAnnotationsToPrometheusLabels(annotations map[string]string) ([]string, []string) {
-	// Remove Last applied configuration annotation since it can potentially store sensitive data.
-	// Refer to https://github.com/kubernetes/kube-state-metrics/issues/854 for more info.
-	// TODO: We need to rethink how we expose annotations since it's pretty unbounded.
-	delete(annotations, v1.LastAppliedConfigAnnotation)
+	opts := options.Instance()
+	annotationWhiteList, err := whiteblacklist.New(opts.AnnotationWhitelist, nil)
+	annotationWhiteList.Parse()
+	if err != nil {
+		klog.Fatal(err)
+	}
+
+	// Remove all kubectl annotations. kubectlPrefix = "kubectl.kubernetes.io/"
+	annotationWhiteList.Exclude([]string{`kubectl\.kubernetes\.io/.+`})
+
 	annotationKeys := make([]string, len(annotations))
 	annotationValues := make([]string, len(annotations))
 	i := 0
 	for k, v := range annotations {
-		annotationKeys[i] = "annotation_" + sanitizeLabelName(k)
-		annotationValues[i] = v
-		i++
+		if annotationWhiteList.IsIncluded(k) {
+			annotationKeys[i] = "annotation_" + sanitizeLabelName(k)
+			annotationValues[i] = v
+			i++
+		}
 	}
-	return annotationKeys, annotationValues
+
+	if i == 0 {
+		return []string{}, []string{}
+	}
+
+	return annotationKeys[:i-1], annotationValues[:i-1]
 }
 
 func sanitizeLabelName(s string) string {

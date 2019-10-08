@@ -49,15 +49,30 @@ type Options struct {
 
 	EnableGZIPEncoding bool
 
+	EnableAnnotationMetrics bool
+	AnnotationWhitelist     MetricSet
+
 	flags *pflag.FlagSet
+}
+
+var opts *Options
+
+func init() {
+	opts = NewOptions()
+}
+
+// Instance returns the global instance of `Options`.
+func Instance() *Options {
+	return opts
 }
 
 // NewOptions returns a new instance of `Options`.
 func NewOptions() *Options {
 	return &Options{
-		Collectors:      CollectorSet{},
-		MetricWhitelist: MetricSet{},
-		MetricBlacklist: MetricSet{},
+		Collectors:          CollectorSet{},
+		MetricWhitelist:     MetricSet{},
+		MetricBlacklist:     MetricSet{},
+		AnnotationWhitelist: MetricSet{},
 	}
 }
 
@@ -99,6 +114,8 @@ func (o *Options) AddFlags() {
 	o.flags.BoolVarP(&o.DisablePodNonGenericResourceMetrics, "disable-pod-non-generic-resource-metrics", "", false, "Disable pod non generic resource request and limit metrics")
 	o.flags.BoolVarP(&o.DisableNodeNonGenericResourceMetrics, "disable-node-non-generic-resource-metrics", "", false, "Disable node non generic resource request and limit metrics")
 	o.flags.BoolVar(&o.EnableGZIPEncoding, "enable-gzip-encoding", false, "Gzip responses when requested by clients via 'Accept-Encoding: gzip' header.")
+	o.flags.BoolVar(&o.EnableAnnotationMetrics, "enable-annotation-metrics", false, "Enable annotation metrics of various objects. This should only be enabled after carefully configuring annotation-whitelist.")
+	o.flags.Var(&o.AnnotationWhitelist, "annotation-whitelist", "Comma-separated list of annotations to be exposed. This list comprises of exact annotation metric names and/or regex patterns.")
 }
 
 // Parse parses the flag definitions from the argument list.
