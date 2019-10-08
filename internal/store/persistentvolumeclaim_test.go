@@ -38,6 +38,9 @@ func TestPersistentVolumeClaimStore(t *testing.T) {
 					Labels: map[string]string{
 						"app": "mysql-server",
 					},
+					Annotations: map[string]string{
+						"app": "mysql-server",
+					},
 				},
 				Spec: v1.PersistentVolumeClaimSpec{
 					AccessModes: []v1.PersistentVolumeAccessMode{
@@ -73,8 +76,9 @@ func TestPersistentVolumeClaimStore(t *testing.T) {
 				kube_persistentvolumeclaim_resource_requests_storage_bytes{namespace="default",persistentvolumeclaim="mysql-data"} 1.073741824e+09
 				kube_persistentvolumeclaim_labels{label_app="mysql-server",namespace="default",persistentvolumeclaim="mysql-data"} 1
 				kube_persistentvolumeclaim_access_mode{namespace="default",persistentvolumeclaim="mysql-data",access_mode="ReadWriteOnce"} 1
+				kube_persistentvolumeclaim_annotations{namespace="default",persistentvolumeclaim="mysql-data",annotation_app="mysql-server"} 1
 `,
-			MetricNames: []string{"kube_persistentvolumeclaim_info", "kube_persistentvolumeclaim_status_phase", "kube_persistentvolumeclaim_resource_requests_storage_bytes", "kube_persistentvolumeclaim_labels", "kube_persistentvolumeclaim_access_mode"},
+			MetricNames: []string{"kube_persistentvolumeclaim_info", "kube_persistentvolumeclaim_status_phase", "kube_persistentvolumeclaim_resource_requests_storage_bytes", "kube_persistentvolumeclaim_labels", "kube_persistentvolumeclaim_access_mode", "kube_persistentvolumeclaim_annotations"},
 		},
 		{
 			Obj: &v1.PersistentVolumeClaim{

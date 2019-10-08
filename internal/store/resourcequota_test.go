@@ -35,6 +35,8 @@ func TestResourceQuotaStore(t *testing.T) {
 	# TYPE kube_resourcequota gauge
 	# HELP kube_resourcequota_created Unix creation timestamp
 	# TYPE kube_resourcequota_created gauge
+	# HELP kube_resourcequota_annotations Kubernetes annotations converted to Prometheus labels.
+	# TYPE kube_resourcequota_annotations gauge
 	`
 	cases := []generateMetricsTestCase{
 		// Verify populating base metric and that metric for unset fields are skipped.
@@ -44,11 +46,15 @@ func TestResourceQuotaStore(t *testing.T) {
 					Name:              "quotaTest",
 					CreationTimestamp: metav1.Time{Time: time.Unix(1500000000, 0)},
 					Namespace:         "testNS",
+					Annotations: map[string]string{
+						"rq": "rq",
+					},
 				},
 				Status: v1.ResourceQuotaStatus{},
 			},
 			Want: metadata + `
 			kube_resourcequota_created{namespace="testNS",resourcequota="quotaTest"} 1.5e+09
+			kube_resourcequota_annotations{namespace="testNS",resourcequota="quotaTest",annotation_rq="rq"} 1
 			`,
 		},
 		// Verify resource metric.
@@ -57,6 +63,9 @@ func TestResourceQuotaStore(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "quotaTest",
 					Namespace: "testNS",
+					Annotations: map[string]string{
+						"RQ": "RQ",
+					},
 				},
 				Spec: v1.ResourceQuotaSpec{
 					Hard: v1.ResourceList{
@@ -130,6 +139,7 @@ func TestResourceQuotaStore(t *testing.T) {
 			kube_resourcequota{namespace="testNS",resource="services.nodeports",resourcequota="quotaTest",type="used"} 1
 			kube_resourcequota{namespace="testNS",resource="storage",resourcequota="quotaTest",type="hard"} 1e+10
 			kube_resourcequota{namespace="testNS",resource="storage",resourcequota="quotaTest",type="used"} 9e+09
+			kube_resourcequota_annotations{namespace="testNS",resourcequota="quotaTest",annotation_RQ="RQ"} 1
 			`,
 		},
 	}

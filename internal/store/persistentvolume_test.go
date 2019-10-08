@@ -55,6 +55,9 @@ func TestPersistentVolumeStore(t *testing.T) {
 			Obj: &v1.PersistentVolume{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "test-pv-available",
+					Annotations: map[string]string{
+						"pv": "test",
+					},
 				},
 				Status: v1.PersistentVolumeStatus{
 					Phase: v1.VolumeAvailable,
@@ -68,8 +71,12 @@ func TestPersistentVolumeStore(t *testing.T) {
 					kube_persistentvolume_status_phase{persistentvolume="test-pv-available",phase="Failed"} 0
 					kube_persistentvolume_status_phase{persistentvolume="test-pv-available",phase="Pending"} 0
 					kube_persistentvolume_status_phase{persistentvolume="test-pv-available",phase="Released"} 0
+					kube_persistentvolume_annotations{persistentvolume="test-pv-available",annotation_pv="test"} 1
 `,
-			MetricNames: []string{"kube_persistentvolume_status_phase"},
+			MetricNames: []string{
+				"kube_persistentvolume_status_phase",
+				"kube_persistentvolume_annotations",
+			},
 		},
 		{
 			Obj: &v1.PersistentVolume{
@@ -136,6 +143,9 @@ func TestPersistentVolumeStore(t *testing.T) {
 			Obj: &v1.PersistentVolume{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "test-pv-pending",
+					Annotations: map[string]string{
+						"pv-test": "test",
+					},
 				},
 				Status: v1.PersistentVolumeStatus{
 					Phase: v1.VolumePending,
@@ -152,9 +162,11 @@ func TestPersistentVolumeStore(t *testing.T) {
 					kube_persistentvolume_status_phase{persistentvolume="test-pv-pending",phase="Failed"} 0
 					kube_persistentvolume_status_phase{persistentvolume="test-pv-pending",phase="Pending"} 1
 					kube_persistentvolume_status_phase{persistentvolume="test-pv-pending",phase="Released"} 0
+					kube_persistentvolume_annotations{persistentvolume="test-pv-pending",annotation_pv_test="test"} 1
 `,
 			MetricNames: []string{
 				"kube_persistentvolume_status_phase",
+				"kube_persistentvolume_annotations",
 			},
 		},
 		{
